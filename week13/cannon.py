@@ -75,7 +75,7 @@ class Shell(GameObject):
 
 class Cannon(GameObject):
     '''
-    Cannon class. Manages it's renderring, movement and striking.
+    Cannon class. Manages its rendering, movement and striking.
     '''
     def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=RED):
         '''
@@ -88,19 +88,19 @@ class Cannon(GameObject):
         self.color = color
         self.active = False
         self.pow = min_pow
-    
+
     def activate(self):
         '''
         Activates gun's charge.
         '''
         self.active = True
 
-    def gain(self, inc=2):
+    def gain(self, inc_y=2):
         '''
         Increases current gun charge power.
         '''
         if self.active and self.pow < self.max_pow:
-            self.pow += inc
+            self.pow += inc_y
 
     def strike(self):
         '''
@@ -112,19 +112,22 @@ class Cannon(GameObject):
         self.pow = self.min_pow
         self.active = False
         return ball
-        
+
     def set_angle(self, target_pos):
         '''
         Sets gun's direction to target position.
         '''
         self.angle = np.arctan2(target_pos[1] - self.coord[1], target_pos[0] - self.coord[0])
 
-    def move(self, inc):
+    def move(self, inc_x, inc_y):
         '''
-        Changes vertical position of the gun.
+        Changes vertical and horizontal position of the gun.
         '''
-        if (self.coord[1] > 30 or inc > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc < 0):
-            self.coord[1] += inc
+        if (self.coord[1] > 30 or inc_y > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc_y < 0):
+            self.coord[1] += inc_y
+
+        if (self.coord[0] > 30 or inc_x > 0) and (self.coord[0] < SCREEN_SIZE[0] - 30 or inc_x < 0):
+            self.coord[0] += inc_x
 
     def draw(self, screen):
         '''
@@ -255,7 +258,6 @@ class Manager:
             self.new_mission()
 
         return done
-
     def handle_events(self, events):
         '''
         Handles events from keyboard, mouse, etc.
@@ -266,9 +268,13 @@ class Manager:
                 done = True
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
-                    self.gun.move(-5)
+                    self.gun.move(0,-5)
+                if event.key == pg.K_LEFT:
+                    self.gun.move(-5,0)
+                if event.key == pg.K_RIGHT:
+                    self.gun.move(5,0)
                 elif event.key == pg.K_DOWN:
-                    self.gun.move(5)
+                    self.gun.move(0,5)
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     self.gun.activate()
@@ -277,6 +283,27 @@ class Manager:
                     self.balls.append(self.gun.strike())
                     self.score_t.b_used += 1
         return done
+    # def handle_events(self, events):
+    #     '''
+    #     Handles events from keyboard, mouse, etc.
+    #     '''
+    #     done = False
+    #     for event in events:
+    #         if event.type == pg.QUIT:
+    #             done = True
+    #         elif event.type == pg.KEYDOWN:
+    #             if event.key == pg.K_UP:
+    #                 self.gun.move(0,-5)
+    #             elif event.key == pg.K_DOWN:
+    #                 self.gun.move(0,5)
+    #         elif event.type == pg.MOUSEBUTTONDOWN:
+    #             if event.button == 1:
+    #                 self.gun.activate()
+    #         elif event.type == pg.MOUSEBUTTONUP:
+    #             if event.button == 1:
+    #                 self.balls.append(self.gun.strike())
+    #                 self.score_t.b_used += 1
+    #     return done
 
     def draw(self, screen):
         '''
