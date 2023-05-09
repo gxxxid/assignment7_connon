@@ -283,27 +283,7 @@ class Manager:
                     self.balls.append(self.gun.strike())
                     self.score_t.b_used += 1
         return done
-    # def handle_events(self, events):
-    #     '''
-    #     Handles events from keyboard, mouse, etc.
-    #     '''
-    #     done = False
-    #     for event in events:
-    #         if event.type == pg.QUIT:
-    #             done = True
-    #         elif event.type == pg.KEYDOWN:
-    #             if event.key == pg.K_UP:
-    #                 self.gun.move(0,-5)
-    #             elif event.key == pg.K_DOWN:
-    #                 self.gun.move(0,5)
-    #         elif event.type == pg.MOUSEBUTTONDOWN:
-    #             if event.button == 1:
-    #                 self.gun.activate()
-    #         elif event.type == pg.MOUSEBUTTONUP:
-    #             if event.button == 1:
-    #                 self.balls.append(self.gun.strike())
-    #                 self.score_t.b_used += 1
-    #     return done
+
 
     def draw(self, screen):
         '''
