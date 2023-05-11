@@ -320,6 +320,7 @@ class Manager:
                 30 - max(0, self.score_t.score()))))
             self.targets.append(Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
+            self.bombs.append(self.targets[0].strike())
 
 
     def process(self, events, screen):
@@ -389,7 +390,10 @@ class Manager:
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
             target.move()
-            target.strike()
+        ####
+        for i, bomb in enumerate(self.bombs):
+            bomb.draw(screen)
+            bomb.move()
         self.gun.gain()
 
     def collide(self):
