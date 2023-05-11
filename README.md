@@ -19,6 +19,10 @@ __Changes made to the program__
      def move(self, inc_x, inc_y): 
         -added the ability to move the target left and right, the previous abilities of the gun were only up and down. 
         -made sure that the variables changing the left/right and up/down had valuable variable names (inc_x, inc_y)
+        
+     class bomb(Gameobject)
+        makes the bomb, if cannon got hit by the bomb, get points off
 
 __Group Members:__
 Natalia Jauregui 
+Haosi Lin
