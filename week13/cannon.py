@@ -77,7 +77,7 @@ class Cannon(GameObject):
     '''
     Cannon class. Manages its rendering, movement and striking.
     '''
-    def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=RED):
+    def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=25, min_pow=5, color=RED):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
