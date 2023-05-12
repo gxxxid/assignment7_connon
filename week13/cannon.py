@@ -77,73 +77,6 @@ class Shell(GameObject):
         pg.draw.circle(screen, self.color, self.coord, self.rad)
 
 
-# class Cannon(GameObject):
-#     '''
-#     Cannon class. Manages it's renderring, movement and striking.
-#     '''
-#     def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=RED):
-#         '''
-#         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
-#         '''
-#         self.coord = coord
-#         self.angle = angle
-#         self.max_pow = max_pow
-#         self.min_pow = min_pow
-#         self.color = color
-#         self.active = False
-#         self.pow = min_pow
-    
-#     def activate(self):
-#         '''
-#         Activates gun's charge.
-#         '''
-#         self.active = True
-
-#     def gain(self, inc=2):
-#         '''
-#         Increases current gun charge power.
-#         '''
-#         if self.active and self.pow < self.max_pow:
-#             self.pow += inc
-
-#     def strike(self):
-#         '''
-#         Creates ball, according to gun's direction and current charge power.
-#         '''
-#         vel = self.pow
-#         angle = self.angle
-#         ball = Shell(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
-#         self.pow = self.min_pow
-#         self.active = False
-#         return ball
-        
-#     def set_angle(self, target_pos):
-#         '''
-#         Sets gun's direction to target position.
-#         '''
-#         self.angle = np.arctan2(target_pos[1] - self.coord[1], target_pos[0] - self.coord[0])
-
-#     def move(self, inc):
-#         '''
-#         Changes vertical position of the gun.
-#         '''
-#         if (self.coord[1] > 30 or inc > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc < 0):
-#             self.coord[1] += inc
-
-#     def draw(self, screen):
-#         '''
-#         Draws the gun on the screen.
-#         '''
-#         gun_shape = []
-#         vec_1 = np.array([int(5*np.cos(self.angle - np.pi/2)), int(5*np.sin(self.angle - np.pi/2))])
-#         vec_2 = np.array([int(self.pow*np.cos(self.angle)), int(self.pow*np.sin(self.angle))])
-#         gun_pos = np.array(self.coord)
-#         gun_shape.append((gun_pos + vec_1).tolist())
-#         gun_shape.append((gun_pos + vec_1 + vec_2).tolist())
-#         gun_shape.append((gun_pos + vec_2 - vec_1).tolist())
-#         gun_shape.append((gun_pos - vec_1).tolist())
-#         pg.draw.polygon(screen, self.color, gun_shape)
-
 
 class Target(GameObject):
     '''
@@ -359,16 +292,20 @@ class Tank(GameObject):
         if self.active and self.pow < self.max_pow:
             self.pow += inc_y
 
+
     def strike(self):
         '''
-        Creates a shell, according to the tank's direction and current charge power.
+        Creates two shells, according to the tank's direction and current charge power.
         '''
         vel = self.pow
         angle = self.angle
-        shell = Shell(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
+        shells = []
+        shells.append(Shell(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))]))
+        shells.append(Shell(list(self.coord), [int(vel * np.cos(angle + np.pi)), int(vel * np.sin(angle + np.pi))]))
         self.pow = self.min_pow
         self.active = False
-        return shell
+        return shells
+
 
     def set_angle(self, target_pos):
         '''
@@ -392,7 +329,6 @@ class Tank(GameObject):
         '''
         tank_body = pg.Rect(self.coord[0] - 20, self.coord[1] - 10, 40, 20)
         pg.draw.rect(screen, self.body_color, tank_body)
-        
 
         gun_shape = []
         vec_1 = np.array([int(5 * np.cos(self.angle - np.pi/2)), int(5 * np.sin(self.angle - np.pi/2))])
@@ -402,7 +338,14 @@ class Tank(GameObject):
         gun_shape.append((gun_pos + vec_1 + vec_2).tolist())
         gun_shape.append((gun_pos + vec_2 - vec_1).tolist())
         gun_shape.append((gun_pos - vec_1).tolist())
+        wheel_radius = 8 
+        wheel_1 = pg.draw.circle(screen, self.body_color, (self.coord[0] - 15, self.coord[1] + 10), wheel_radius)
+        wheel_2 = pg.draw.circle(screen, self.body_color, (self.coord[0], self.coord[1] + 10), wheel_radius)
+        wheel_3 = pg.draw.circle(screen, self.body_color, (self.coord[0] + 15, self.coord[1] + 10), wheel_radius)
         pg.draw.polygon(screen, self.gun_color, gun_shape)
+        
+	  
+        
 
 
 
