@@ -8,6 +8,8 @@ pg.font.init()
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+###
+saddle = (139,69,19)
 
 SCREEN_SIZE = (800, 600)
 
@@ -227,6 +229,8 @@ class Bombs(GameObject):
         self.color = color
         self.rad = rad
         self.is_alive = True
+        self.bomb = pg.image.load('bomb.png')
+        self.bomb = pg.transform.scale(self.bomb,(15,15))
     
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
         '''
@@ -240,6 +244,7 @@ class Bombs(GameObject):
             elif self.coord[i] > SCREEN_SIZE[i] - self.rad:
                 self.coord[i] = SCREEN_SIZE[i] - self.rad
                 self.vel[i] = -int(self.vel[i] * refl_ort)
+            screen.blit(self.bomb,self.coord) 
 
     def move(self, time=1, grav=0):
         '''
@@ -258,8 +263,10 @@ class Bombs(GameObject):
         '''
         Draws the bomb on appropriate surface.
         '''
-        pg.draw.circle(screen, self.color, self.coord, self.rad)
-    
+        
+        #pg.draw.circle(screen, self.color, self.coord, self.rad)
+        screen.blit(self.bomb,self.coord)
+        
 
 
 
@@ -320,7 +327,7 @@ class Manager:
                 30 - max(0, self.score_t.score()))))
             self.targets.append(Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
-            self.bombs.append(self.targets[0].strike())
+            #self.bombs.append(self.targets[0].strike())
 
 
     def process(self, events, screen):
@@ -361,7 +368,8 @@ class Manager:
             elif event.type == pg.MOUSEBUTTONUP:
                 if event.button == 1:
                     self.balls.append(self.gun.strike())
-                    self.bombs.append(self.targets[0].strike())
+                    for target in self.targets:
+                        self.bombs.append(target.strike())
                     self.score_t.b_used += 1
         return done
 
