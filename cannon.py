@@ -9,7 +9,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 ###
-saddle = (139,69,19)
+SADDLE = (139,69,19)
 
 SCREEN_SIZE = (800, 600)
 
@@ -142,6 +142,14 @@ class Cannon(GameObject):
         gun_shape.append((gun_pos - vec_1).tolist())
         pg.draw.polygon(screen, self.color, gun_shape)
 
+    def check_collision(self, bomb):
+        '''
+        Checks whether the bomb bumps into cannon.
+        '''
+        dist = sum([(self.coord[i] - bomb.coord[i])**2 for i in range(2)])**0.5
+        #min_dist = self.rad + bomb.rad
+        return dist <= bomb.rad
+
 class Rival_cannon(GameObject):
     '''
     Rival_cannon class. Manages it's renderring, movement and striking. This is the rival cannon
@@ -214,6 +222,8 @@ class Target(GameObject):
         angle = randint(0,360)
         bomb = Bombs(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
         return bomb
+    
+    
 
 class Bombs(GameObject):
     '''
@@ -263,9 +273,10 @@ class Bombs(GameObject):
         '''
         Draws the bomb on appropriate surface.
         '''
-        
         #pg.draw.circle(screen, self.color, self.coord, self.rad)
         screen.blit(self.bomb,self.coord)
+
+    
         
 
 
@@ -285,23 +296,26 @@ class ScoreTable:
     '''
     Score table class.
     '''
-    def __init__(self, t_destr=0, b_used=0):
+    def __init__(self, t_destr=0, b_used=0,h_score = 0):
         self.t_destr = t_destr
         self.b_used = b_used
         self.font = pg.font.SysFont("dejavusansmono", 25)
+        self.h_score = h_score
 
     def score(self):
         '''
         Score calculation method.
         '''
-        return self.t_destr - self.b_used
+        return self.t_destr - self.b_used - self.h_score
 
     def draw(self, screen):
         score_surf = []
         score_surf.append(self.font.render("Destroyed: {}".format(self.t_destr), True, WHITE))
         score_surf.append(self.font.render("Balls used: {}".format(self.b_used), True, WHITE))
+        score_surf.append(self.font.render("Got hit: {}".format(self.h_score), True, WHITE))
         score_surf.append(self.font.render("Total: {}".format(self.score()), True, RED))
-        for i in range(3):
+        
+        for i in range(4):
             screen.blit(score_surf[i], [10, 10 + 30*i])
 
 
@@ -410,6 +424,7 @@ class Manager:
         '''
         collisions = []
         targets_c = []
+        
         for i, ball in enumerate(self.balls):
             for j, target in enumerate(self.targets):
                 if target.check_collision(ball):
@@ -419,6 +434,10 @@ class Manager:
         for j in reversed(targets_c):
             self.score_t.t_destr += 1
             self.targets.pop(j)
+
+        for i,bomb in enumerate(self.bombs):
+            if(self.gun.check_collision(bomb)):
+                self.score_t.h_score += 1
 
 
 screen = pg.display.set_mode(SCREEN_SIZE)
