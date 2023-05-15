@@ -155,7 +155,7 @@ class Rival_cannon(GameObject):
     Rival_cannon class. Manages it's renderring, movement and striking. This is the rival cannon
     that attacks the user
     '''
-    def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=WHITE):
+    def __init__(self, coord=[770, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=WHITE):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
@@ -168,9 +168,31 @@ class Rival_cannon(GameObject):
         self.pow = min_pow
 
     def move(self):
-        pass
+        '''
+        move towards user cannon
+        '''
+        if(self.gun.coord[1] != self.coord[1]):
+            if(self.gun.coord[1] > self.coord[1]):
+                self.coord[1] += 1
+            else:
+                self.coord[1] -= 1
+        
     
     def draw(self, screen):
+        '''
+        draw a rival cannon on the oposite side of our user cannon
+        '''
+        gun_shape = []
+        vec_1 = np.array([int(5*np.cos(self.angle - np.pi/2)), int(5*np.sin(self.angle - np.pi/2))])
+        vec_2 = np.array([int(self.pow*np.cos(self.angle)), int(self.pow*np.sin(self.angle))])
+        gun_pos = np.array(self.coord)
+        gun_shape.append((gun_pos + vec_1).tolist())
+        gun_shape.append((gun_pos + vec_1 + vec_2).tolist())
+        gun_shape.append((gun_pos + vec_2 - vec_1).tolist())
+        gun_shape.append((gun_pos - vec_1).tolist())
+        pg.draw.polygon(screen, self.color, gun_shape)
+
+    def strike(self):
         pass
 
 
@@ -223,14 +245,53 @@ class Target(GameObject):
         bomb = Bombs(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
         return bomb
     
-    
+class Plane(GameObject):
+    '''
+    Create target that move very fast from diagonal
+    '''
+    def __init__(self, coord, rad = 30):
+        '''
+        Constructor method. Sets coordinate of the target.
+        '''
+        coord_set = [ [ 0, 0], [ 800, 0], [ 0, 600], [ 800, 600] ]
+        self.position = randint(0,3) 
+        coord = coord_set[self.position]
+        self.coord = coord
+        self.plane = pg.image.load('plane.png')
+        self.plane = pg.transform.scale(self.plane,(30,30))
+        self.rad = rad
+    def move(self):
+        '''
+        Move the target plane from diagonal
+        '''
+        if(self.position == 0):
+            if(self.coord[0] <= 800 and self.coord[1] <= 600):
+                self.coord[0] += 10
+                self.coord[1] = self.coord[0] * 0.75
+        elif(self.position == 1):
+            if(self.coord[0] >=0 and self.coord[1] <= 600):
+                self.coord[0] -= 10
+                self.coord[1] = -self.coord[0] * 0.75 + 600
+        elif(self.position == 2):
+            if(self.coord[0] <= 800 and self.coord[1] >= 0 ):
+                self.coord[0] += 10
+                self.coord[1] = -self.coord[0] * 0.75 + 600
+        else:
+            if(self.coord[0] >= 0  and self.coord[1] >= 0):
+                self.coord[0] -= 10
+                self.coord[1] =  self.coord[0] * 0.75
+    def draw(self, screen):
+        '''
+        Draw a target plane from one corner of the screen
+        '''
+        screen.blit(self.plane, self.coord)
 
 class Bombs(GameObject):
     '''
     Bomb class. Creates a bomb from rival or target manages it's rendering and collision with a cannon event.
     '''
 
-    def __init__(self, coord, vel, rad=10, color=WHITE):
+    def __init__(self, coord, vel, rad=15, color=WHITE):
         '''
         Constructor method. Initializes ball's parameters and initial values.
         '''
@@ -254,7 +315,7 @@ class Bombs(GameObject):
             elif self.coord[i] > SCREEN_SIZE[i] - self.rad:
                 self.coord[i] = SCREEN_SIZE[i] - self.rad
                 self.vel[i] = -int(self.vel[i] * refl_ort)
-            screen.blit(self.bomb,self.coord) 
+             
 
     def move(self, time=1, grav=0):
         '''
@@ -267,14 +328,14 @@ class Bombs(GameObject):
         self.check_corners()
         if self.vel[0]**2 + self.vel[1]**2 < 2**2 and self.coord[1] > SCREEN_SIZE[1] - 2*self.rad:
             self.is_alive = False
-
+        #screen.blit(self.bomb, self.coord)
 
     def draw(self, screen):
         '''
         Draws the bomb on appropriate surface.
         '''
         #pg.draw.circle(screen, self.color, self.coord, self.rad)
-        screen.blit(self.bomb,self.coord)
+        screen.blit(self.bomb, self.coord)
 
     
         
@@ -327,10 +388,13 @@ class Manager:
         self.balls = []
         self.bombs = []
         self.gun = Cannon()
+        self.rival = Rival_cannon()
         self.targets = []
         self.score_t = ScoreTable()
+        self.plane = Plane([0,0])
         self.n_targets = n_targets
         self.new_mission()
+        
 
     def new_mission(self):
         '''
@@ -341,7 +405,6 @@ class Manager:
                 30 - max(0, self.score_t.score()))))
             self.targets.append(Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
-            #self.bombs.append(self.targets[0].strike())
 
 
     def process(self, events, screen):
@@ -385,6 +448,8 @@ class Manager:
                     for target in self.targets:
                         self.bombs.append(target.strike())
                     self.score_t.b_used += 1
+
+            self.plane.draw(screen)
         return done
 
     def draw(self, screen):
@@ -397,12 +462,15 @@ class Manager:
             target.draw(screen)
             target.strike()
         self.gun.draw(screen)
+        self.rival.draw(screen)
+        self.plane.draw(screen)
         self.score_t.draw(screen)
 
     def move(self):
         '''
         Runs balls' and gun's movement method, removes dead balls.
         '''
+        self.plane.move()
         dead_balls = []
         for i, ball in enumerate(self.balls):
             ball.move(grav=2)
@@ -412,10 +480,10 @@ class Manager:
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
             target.move()
-        ####
         for i, bomb in enumerate(self.bombs):
             bomb.draw(screen)
             bomb.move()
+        
         self.gun.gain()
 
     def collide(self):
@@ -439,6 +507,9 @@ class Manager:
             if(self.gun.check_collision(bomb)):
                 self.score_t.h_score += 1
 
+        if(self.gun.check_collision(self.plane)):
+            self.score_t.h_score += 1
+
 
 screen = pg.display.set_mode(SCREEN_SIZE)
 pg.display.set_caption("The gun of Khiryanov")
@@ -454,7 +525,7 @@ while not done:
 
     done = mgr.process(pg.event.get(), screen)
 
-    pg.display.flip()
+    pg.display.update()
 
 
 pg.quit()
