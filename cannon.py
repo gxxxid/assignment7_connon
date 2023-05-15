@@ -149,13 +149,34 @@ class Cannon(GameObject):
         dist = sum([(self.coord[i] - bomb.coord[i])**2 for i in range(2)])**0.5
         #min_dist = self.rad + bomb.rad
         return dist <= bomb.rad
+    
+class Bullet(GameObject):
+    '''
+    rival cannon's bullet. Manages it's renderring, movement.
+    '''
+    def __init__(self, coord, vel = 20, rad = 15):
+        self.coord = coord
+        self.vel = vel
+        self.rad = rad
+        self.bullet = pg.image.load('ball.png')
+        self.bullet = pg.transform.scale(self.bullet,(15,15))
+        self.count = 300
+
+    def move(self):
+        self.coord[0] -= self.vel
+            
+    def draw(self, screen):
+        '''
+        draw the bullet
+        '''
+        screen.blit(self.bullet, self.coord)
 
 class Rival_cannon(GameObject):
     '''
-    Rival_cannon class. Manages it's renderring, movement and striking. This is the rival cannon
+    Rival_cannon class. Manages it's renderring, movement and striking. This is the rival cannon.
     that attacks the user
     '''
-    def __init__(self, coord=[770, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=WHITE):
+    def __init__(self, coord=[770, SCREEN_SIZE[1]//2], angle=30, max_pow=50, min_pow=10, color=WHITE):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
@@ -167,15 +188,15 @@ class Rival_cannon(GameObject):
         self.active = False
         self.pow = min_pow
 
-    def move(self):
+    def move(self, cannon):
         '''
         move towards user cannon
         '''
-        if(self.gun.coord[1] != self.coord[1]):
-            if(self.gun.coord[1] > self.coord[1]):
-                self.coord[1] += 1
+        if(cannon.coord[1] != self.coord[1]):
+            if(cannon.coord[1] > self.coord[1]):
+                self.coord[1] += 3
             else:
-                self.coord[1] -= 1
+                self.coord[1] -= 3
         
     
     def draw(self, screen):
@@ -193,7 +214,8 @@ class Rival_cannon(GameObject):
         pg.draw.polygon(screen, self.color, gun_shape)
 
     def strike(self):
-        pass
+        bullet = Bullet(list(self.coord))
+        return bullet
 
 
 class Target(GameObject):
@@ -232,7 +254,6 @@ class Target(GameObject):
         This type of target can't move at all.
         :return: None
         """
-        self.strike()
         pass
         
 
@@ -393,6 +414,7 @@ class Manager:
         self.score_t = ScoreTable()
         self.plane = Plane([0,0])
         self.n_targets = n_targets
+        self.bullets = []
         self.new_mission()
         
 
@@ -447,9 +469,9 @@ class Manager:
                     self.balls.append(self.gun.strike())
                     for target in self.targets:
                         self.bombs.append(target.strike())
+                    self.bullets.append(self.rival.strike())
                     self.score_t.b_used += 1
 
-            self.plane.draw(screen)
         return done
 
     def draw(self, screen):
@@ -460,7 +482,6 @@ class Manager:
             ball.draw(screen)
         for target in self.targets:
             target.draw(screen)
-            target.strike()
         self.gun.draw(screen)
         self.rival.draw(screen)
         self.plane.draw(screen)
@@ -480,9 +501,13 @@ class Manager:
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
             target.move()
-        for i, bomb in enumerate(self.bombs):
+        for bomb in self.bombs:
             bomb.draw(screen)
             bomb.move()
+        for bullet in self.bullets:
+            bullet.draw(screen)
+            bullet.move()
+        self.rival.move(self.gun)
         
         self.gun.gain()
 
@@ -505,6 +530,10 @@ class Manager:
 
         for i,bomb in enumerate(self.bombs):
             if(self.gun.check_collision(bomb)):
+                self.score_t.h_score += 1
+
+        for i, bullet in enumerate(self.bullets):
+            if(self.gun.check_collision(bullet)):
                 self.score_t.h_score += 1
 
         if(self.gun.check_collision(self.plane)):
