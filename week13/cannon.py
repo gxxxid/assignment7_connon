@@ -1,6 +1,8 @@
 import numpy as np
 import pygame as pg
 from random import randint, gauss
+import random 
+
 
 pg.init()
 pg.font.init()
@@ -30,49 +32,52 @@ class GameObject:
 
 class Shell(GameObject):
     '''
-    The ball class. Creates a ball, controls it's movement and implement it's rendering.
+    The ball class. Creates a ball, controls its movement, and implements its rendering.
     '''
+
     def __init__(self, coord, vel, rad=20, color=None):
         '''
         Constructor method. Initializes ball's parameters and initial values.
         '''
         self.coord = coord
         self.vel = vel
-        if color == None:
+        if color is None:
             color = rand_color()
         self.color = color
         self.rad = rad
         self.is_alive = True
+        self.rect = pg.Rect(coord[0] - rad, coord[1] - rad, rad * 2, rad * 2)
 
     def check_corners(self, refl_ort=0.8, refl_par=0.9):
         '''
-        Reflects ball's velocity when ball bumps into the screen corners. Implemetns inelastic rebounce.
+        Reflects ball's velocity when the ball bumps into the screen corners. Implements inelastic rebound.
         '''
         for i in range(2):
             if self.coord[i] < self.rad:
                 self.coord[i] = self.rad
                 self.vel[i] = -int(self.vel[i] * refl_ort)
-                self.vel[1-i] = int(self.vel[1-i] * refl_par)
+                self.vel[1 - i] = int(self.vel[1 - i] * refl_par)
             elif self.coord[i] > SCREEN_SIZE[i] - self.rad:
                 self.coord[i] = SCREEN_SIZE[i] - self.rad
                 self.vel[i] = -int(self.vel[i] * refl_ort)
-                self.vel[1-i] = int(self.vel[1-i] * refl_par)
+                self.vel[1 - i] = int(self.vel[1 - i] * refl_par)
+        self.rect.center = self.coord
 
     def move(self, time=1, grav=0):
         '''
-        Moves the ball according to it's velocity and time step.
+        Moves the ball according to its velocity and time step.
         Changes the ball's velocity due to gravitational force.
         '''
         self.vel[1] += grav
         for i in range(2):
             self.coord[i] += time * self.vel[i]
         self.check_corners()
-        if self.vel[0]**2 + self.vel[1]**2 < 2**2 and self.coord[1] > SCREEN_SIZE[1] - 2*self.rad:
+        if self.vel[0] ** 2 + self.vel[1] ** 2 < 2 ** 2 and self.coord[1] > SCREEN_SIZE[1] - 2 * self.rad:
             self.is_alive = False
 
     def draw(self, screen):
         '''
-        Draws the ball on appropriate surface.
+        Draws the ball on the appropriate surface.
         '''
         pg.draw.circle(screen, self.color, self.coord, self.rad)
 
@@ -151,6 +156,26 @@ class ScoreTable:
         for i in range(3):
             screen.blit(score_surf[i], [10, 10 + 30*i])
 
+class RectangleTarget:
+    def __init__(self, width, height, x, y, speed=1):
+        self.rect = pg.Rect(x, y, width, height)
+        self.speed = speed
+        self.direction = 1
+
+    def move(self):
+        # Move the rectangle vertically
+        self.rect.y += self.speed * self.direction
+
+        # Reverse direction if the rectangle reaches the top or bottom edge
+        if self.rect.y <= 0 or self.rect.y >= SCREEN_SIZE[1] - self.rect.height:
+            self.direction *= -1
+
+    def draw(self, screen):
+        pg.draw.rect(screen, (255, 0, 0), self.rect)
+
+    def check_collision(self, ball):
+        return self.rect.colliderect(ball.rect)
+
 
 class Manager:
     '''
@@ -173,7 +198,13 @@ class Manager:
                 30 - max(0, self.score_t.score()))))
             self.targets.append(Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
-
+            
+        for i in range(5):  # Create 5 rectangle targets
+            width = 50  # Specify the width of the rectangle target
+            height = 25  # Specify the height of the rectangle target
+            x = random.randint(0, SCREEN_SIZE[0] - width)  # Generate random x-coordinate within screen width
+            y = random.randint(0, SCREEN_SIZE[1] - height)  # Generate random y-coordinate within screen height
+            self.targets.append(RectangleTarget(width, height, x, y))      
 
     def process(self, events, screen):
         '''
@@ -295,16 +326,14 @@ class Tank(GameObject):
 
     def strike(self):
         '''
-        Creates two shells, according to the tank's direction and current charge power.
+        Creates a shell, according to the tank's direction and current charge power.
         '''
         vel = self.pow
         angle = self.angle
-        shells = []
-        shells.append(Shell(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))]))
-        shells.append(Shell(list(self.coord), [int(vel * np.cos(angle + np.pi)), int(vel * np.sin(angle + np.pi))]))
+        shell = Shell(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
         self.pow = self.min_pow
         self.active = False
-        return shells
+        return shell
 
 
     def set_angle(self, target_pos):
