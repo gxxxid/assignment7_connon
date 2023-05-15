@@ -22,7 +22,9 @@ __Changes made to the program__
         
      class bomb(Gameobject)
         makes the bomb, if cannon got hit by the bomb, get points off
-
+        
+     class Plane(Gameobject
+        makes a plane that will move along the diagonal
 __Group Members:__
 Natalia Jauregui 
 Haosi Lin
