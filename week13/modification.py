@@ -5,6 +5,9 @@ from random import randint
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
+GRAY = (220,220,220)
+PINK = (220,0,0)
+TEAL= (0,255,255)
 
 SCREEN_SIZE = (800, 600)
 
@@ -71,7 +74,8 @@ class Cannon(GameObject):
     '''
     Cannon class. Manages it's renderring, movement and striking.
     '''
-    def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, min_pow=10, color=RED):
+    def __init__(self, coord=[30, SCREEN_SIZE[1]//2], angle=0, max_pow=50, 
+                 min_pow=10,  body_color=GRAY, gun_color=TEAL):
         '''
         Constructor method. Sets coordinate, direction, minimum and maximum power and color of the gun.
         '''
@@ -79,7 +83,8 @@ class Cannon(GameObject):
         self.angle = angle
         self.max_pow = max_pow
         self.min_pow = min_pow
-        self.color = color
+        self.body_color = GRAY
+        self.gun_color =  TEAL
         self.active = False
         self.pow = min_pow
     
@@ -113,26 +118,36 @@ class Cannon(GameObject):
         '''
         self.angle = np.arctan2(target_pos[1] - self.coord[1], target_pos[0] - self.coord[0])
 
-    def move(self, inc):
+    def move(self, inc_x, inc_y):
         '''
-        Changes vertical position of the gun.
+        Changes the vertical and horizontal position of the tank.
         '''
-        if (self.coord[1] > 30 or inc > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc < 0):
-            self.coord[1] += inc
+        if (self.coord[1] > 30 or inc_y > 0) and (self.coord[1] < SCREEN_SIZE[1] - 30 or inc_y < 0):
+            self.coord[1] += inc_y
+
+        if (self.coord[0] > 30 or inc_x > 0) and (self.coord[0] < SCREEN_SIZE[0] - 30 or inc_x < 0):
+            self.coord[0] += inc_x
 
     def draw(self, screen):
         '''
-        Draws the gun on the screen.
+        Draws the tank on the screen.
         '''
+        tank_body = pg.Rect(self.coord[0] - 20, self.coord[1] - 10, 40, 20)
+        pg.draw.rect(screen, self.body_color, tank_body)
+
         gun_shape = []
-        vec_1 = np.array([int(5*np.cos(self.angle - np.pi/2)), int(5*np.sin(self.angle - np.pi/2))])
-        vec_2 = np.array([int(self.pow*np.cos(self.angle)), int(self.pow*np.sin(self.angle))])
+        vec_1 = np.array([int(5 * np.cos(self.angle - np.pi/2)), int(5 * np.sin(self.angle - np.pi/2))])
+        vec_2 = np.array([int(self.pow * np.cos(self.angle)), int(self.pow * np.sin(self.angle))])
         gun_pos = np.array(self.coord)
         gun_shape.append((gun_pos + vec_1).tolist())
         gun_shape.append((gun_pos + vec_1 + vec_2).tolist())
         gun_shape.append((gun_pos + vec_2 - vec_1).tolist())
         gun_shape.append((gun_pos - vec_1).tolist())
-        pg.draw.polygon(screen, self.color, gun_shape)
+        wheel_radius = 8 
+        wheel_1 = pg.draw.circle(screen, self.body_color, (self.coord[0] - 15, self.coord[1] + 10), wheel_radius)
+        wheel_2 = pg.draw.circle(screen, self.body_color, (self.coord[0], self.coord[1] + 10), wheel_radius)
+        wheel_3 = pg.draw.circle(screen, self.body_color, (self.coord[0] + 15, self.coord[1] + 10), wheel_radius)
+        pg.draw.polygon(screen, self.gun_color, gun_shape)
 
     def check_collision(self, bomb):
         '''
@@ -318,6 +333,28 @@ class Target(GameObject):
         angle = randint(0,360)
         bomb = Bombs(list(self.coord), [int(vel * np.cos(angle)), int(vel * np.sin(angle))])
         return bomb
+    
+class RectangleTarget:
+    def __init__(self, width, height, x, y, speed=1):
+        self.rect = pg.Rect(x, y, width, height)
+        self.speed = speed
+        self.direction = 1
+
+    def move(self):
+        # Move the rectangle vertically
+        self.rect.y += self.speed * self.direction
+
+        # Reverse direction if the rectangle reaches the top or bottom edge
+        if self.rect.y <= 0 or self.rect.y >= SCREEN_SIZE[1] - self.rect.height:
+            self.direction *= -1
+
+    def draw(self, screen):
+        pg.draw.rect(screen, (255, 0, 0), self.rect)
+
+    def check_collision(self, ball):
+        return self.rect.colliderect(ball.rect)
+    
+
 
 class Plane(GameObject):
     '''

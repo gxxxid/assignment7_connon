@@ -1,4 +1,4 @@
-import modification as haosi
+import modification as m
 import pygame as pg
 from random import randint, gauss
 
@@ -44,14 +44,16 @@ class Manager:
     def __init__(self, n_targets=1):
         self.balls = []
         self.bombs = []
-        self.gun = haosi.Cannon()
-        self.rival = haosi.Rival_cannon()
+        self.gun = m.Cannon()
+        self.rival = m.Rival_cannon()
         self.targets = []
+        self.rectangle_targets = []
         self.score_t = ScoreTable()
-        self.plane = haosi.Plane([0,0])
+        self.plane = m.Plane([0,0])
         self.n_targets = n_targets
         self.bullets = []
         self.new_mission()
+        
         
 
     def new_mission(self):
@@ -59,11 +61,17 @@ class Manager:
         Adds new targets.
         '''
         for i in range(self.n_targets):
-            self.targets.append(haosi.MovingTargets(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
+            self.targets.append(m.MovingTargets(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
-            self.targets.append(haosi.Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
+            self.targets.append(m.Target(rad=randint(max(1, 30 - 2*max(0, self.score_t.score())),
                 30 - max(0, self.score_t.score()))))
 
+        for i in range(5):  # Create 5 rectangle targets
+            width = 50  # Specify the width of the rectangle target
+            height = 25  # Specify the height of the rectangle target
+            x = randint(0, SCREEN_SIZE[0] - width)  # Generate random x-coordinate within screen width
+            y = randint(0, SCREEN_SIZE[1] - height)  # Generate random y-coordinate within screen height
+            self.rectangle_targets.append(m.RectangleTarget(width, height, x, y))  
 
     def process(self, events, screen):
         '''
@@ -94,9 +102,13 @@ class Manager:
                 done = True
             elif event.type == pg.KEYDOWN:
                 if event.key == pg.K_UP:
-                    self.gun.move(-5)
+                    self.gun.move(0,-5)
+                if event.key == pg.K_LEFT:
+                    self.gun.move(-5,0)
+                if event.key == pg.K_RIGHT:
+                    self.gun.move(5,0)
                 elif event.key == pg.K_DOWN:
-                    self.gun.move(5)
+                    self.gun.move(0,5)
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     self.gun.activate()
@@ -136,6 +148,8 @@ class Manager:
         for i in reversed(dead_balls):
             self.balls.pop(i)
         for i, target in enumerate(self.targets):
+            target.move()
+        for target in self.rectangle_targets:
             target.move()
         for bomb in self.bombs:
             bomb.draw(screen)
