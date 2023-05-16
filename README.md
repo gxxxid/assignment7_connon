@@ -25,6 +25,18 @@ __Changes made to the program__
         
      class Plane(Gameobject
         makes a plane that will move along the diagonal
+    class Tank(GameObject):
+        Draws the tank on the screen to be able to make a moc=ving tank
+        
+    def new_mission(self):
+        adds new targets, calls the Rectangle class
+        
+    class RectangleTarget:
+        draws the rectangles on the screen to be later called 
+        
+    class MovingTargets(Target):
+        makes moving targets and a new location
+        
 __Group Members:__
 Natalia Jauregui 
 Haosi Lin
