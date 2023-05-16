@@ -14,28 +14,8 @@ __Project completes the following tasks:__
     5. Implement multiple cannons that can shoot at each other.
 
 
-__Changes made to the program__
-
-     def move(self, inc_x, inc_y): 
-        -added the ability to move the target left and right, the previous abilities of the gun were only up and down. 
-        -made sure that the variables changing the left/right and up/down had valuable variable names (inc_x, inc_y)
-        
-     class bomb(Gameobject)
-        makes the bomb, if cannon got hit by the bomb, get points off
-        
-     class Plane(Gameobject
-        makes a plane that will move along the diagonal
-    class Tank(GameObject):
-        Draws the tank on the screen to be able to make a moc=ving tank
-        
-    def new_mission(self):
-        adds new targets, calls the Rectangle class
-        
-    class RectangleTarget:
-        draws the rectangles on the screen to be later called 
-        
-    class MovingTargets(Target):
-        makes moving targets and a new location
+To run program, go to week 13 and download all the content, and run main program Cannon_with_modification.py
+modificationns were edited in a module called modification.py containing all the game objects.
         
 __Group Members:__
 Natalia Jauregui 
