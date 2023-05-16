@@ -16,6 +16,8 @@ __Project completes the following tasks:__
 
 To run program, go to week 13 and download all the content, and run main program Cannon_with_modification.py
 modificationns were edited in a module called modification.py containing all the game objects.
+
+We have the recording of the project under week 13
         
 __Group Members:__
 Natalia Jauregui 
